@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { CheckCircle2, XCircle, RotateCcw, Award, ArrowRight, HelpCircle, Sparkles, BookOpen } from "lucide-react";
+import { useState } from "react";
+import { CheckCircle2, XCircle, RotateCcw, Award, ArrowRight, HelpCircle, Sparkles } from "lucide-react";
 import confetti from "canvas-confetti";
 import { QuizQuestion, QuizAttempt } from "@/types";
 
@@ -24,7 +24,6 @@ export default function QuizRunner({
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [showExplanation, setShowExplanation] = useState<Record<number, boolean>>({});
   const [isCompleted, setIsCompleted] = useState(false);
-  const [startTime] = useState<number>(Date.now());
 
   const currentQ = questions[currentIndex];
   const isAnswered = selectedAnswers[currentIndex] !== undefined;

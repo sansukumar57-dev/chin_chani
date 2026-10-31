@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/navbar';
 import Sidebar from '@/components/sidebar';
@@ -27,12 +27,8 @@ import {
   Circle,
   Clock,
   MessageSquare,
-  Zap,
-  Layers,
   ChevronRight,
-  Check,
   TrendingUp,
-  Target
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -64,13 +60,13 @@ export default function DashboardPage() {
           spread: 60,
           origin: { y: 0.7 },
         });
-      } catch (e) {
+      } catch {
         // Safe confetti fallback
       }
     }
   }
 
-  function handleUploadSuccess(newDoc: StudyDocument) {
+  function handleUploadSuccess() {
     setDocuments(getDocuments());
     setProfile(getUserProfile());
   }

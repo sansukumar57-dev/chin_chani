@@ -10,18 +10,15 @@ import {
   Shuffle,
   CheckCircle,
   Clock,
-  Sparkles,
-  HelpCircle,
   Volume2,
   Keyboard,
   Layers,
-  Award
 } from 'lucide-react';
 
 interface FlashcardDeckProps {
   cards: Flashcard[];
   documentId: string;
-  documentTitle: string;
+  documentTitle?: string;
 }
 
 export default function FlashcardDeck({

@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Database, ShieldCheck, Cpu, Code2, Layers, CheckCircle2, Award } from "lucide-react";
+import { X, Database, ShieldCheck, Cpu, Code2, CheckCircle2, Award } from "lucide-react";
 
 interface ArchitectureModalProps {
   isOpen: boolean;

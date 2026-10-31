@@ -2,16 +2,10 @@
 
 import { useState } from "react";
 import {
-  BarChart3,
-  TrendingUp,
-  AlertCircle,
-  CheckCircle2,
   Calendar,
   Clock,
-  Sparkles,
   ArrowRight,
   Target,
-  RefreshCw
 } from "lucide-react";
 import { TopicMastery, StudyPlanItem } from "@/types";
 import { INITIAL_TOPIC_MASTERY, INITIAL_STUDY_PLAN } from "@/lib/store";

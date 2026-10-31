@@ -16,6 +16,16 @@ import {
 } from "lucide-react";
 import { ChatMessage, StudyDocument } from "@/types";
 
+let chatInterfaceCounter = 0;
+function createChatMsgId(prefix: string): string {
+  chatInterfaceCounter += 1;
+  return `${prefix}-${Date.now()}-${chatInterfaceCounter}`;
+}
+
+function getChatTimestamp(): string {
+  return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
 interface ChatInterfaceProps {
   document: StudyDocument;
 }
@@ -26,7 +36,7 @@ export default function ChatInterface({ document }: ChatInterfaceProps) {
       id: "welcome-msg",
       sender: "assistant",
       text: `Hello! I'm your StudyGenie AI tutor for "${document.title}". Ask me any conceptual questions, request analogies, or test your understanding. All my answers are grounded strictly in your study material!`,
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      timestamp: getChatTimestamp(),
       citations: [`${document.title} (Grounded Knowledge Source)`],
     },
   ]);
@@ -51,10 +61,10 @@ export default function ChatInterface({ document }: ChatInterfaceProps) {
     if (!question.trim() || isLoading) return;
 
     const userMsg: ChatMessage = {
-      id: `user-${Date.now()}`,
+      id: createChatMsgId("user"),
       sender: "user",
       text: question.trim(),
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      timestamp: getChatTimestamp(),
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -77,22 +87,22 @@ export default function ChatInterface({ document }: ChatInterfaceProps) {
 
       if (data.success && data.answer) {
         const aiMsg: ChatMessage = {
-          id: `ai-${Date.now()}`,
+          id: createChatMsgId("ai"),
           sender: "assistant",
           text: data.answer,
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          timestamp: getChatTimestamp(),
           citations: data.citations || [`Section: ${document.subject || "Study Notes"}`],
         };
         setMessages((prev) => [...prev, aiMsg]);
       } else {
         throw new Error(data.error || "Failed to get AI answer");
       }
-    } catch (err) {
+    } catch {
       const errorMsg: ChatMessage = {
-        id: `err-${Date.now()}`,
+        id: createChatMsgId("err"),
         sender: "assistant",
         text: "I encountered a minor network issue. However, based on your notes: always verify boundary invariants and review the key equations!",
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        timestamp: getChatTimestamp(),
       };
       setMessages((prev) => [...prev, errorMsg]);
     } finally {

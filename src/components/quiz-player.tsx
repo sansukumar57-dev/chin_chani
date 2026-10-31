@@ -14,8 +14,6 @@ import {
   BarChart2,
   Sparkles,
   Volume2,
-  Award,
-  ChevronRight,
   AlertTriangle
 } from 'lucide-react';
 import Link from 'next/link';

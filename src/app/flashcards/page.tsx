@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/navbar';
 import Sidebar from '@/components/sidebar';
-import { Layers, Sparkles, CheckCircle, Clock, Shuffle, RotateCcw, ArrowLeft } from 'lucide-react';
+import { Shuffle, RotateCcw } from 'lucide-react';
 
 type CardStatus = 'MASTERED' | 'LEARNING';
 

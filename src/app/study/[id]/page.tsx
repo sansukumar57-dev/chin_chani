@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/navbar';
@@ -12,11 +12,9 @@ import {
   getQuizQuestions,
   getFlashcards,
   saveQuizQuestions,
-  saveDocument,
 } from '@/lib/store';
-import { StudyDocument, QuizQuestion, Flashcard, DocumentSummary } from '@/types';
+import { StudyDocument, QuizQuestion, Flashcard } from '@/types';
 import {
-  BookOpen,
   Brain,
   Layers,
   MessageSquare,
@@ -24,7 +22,6 @@ import {
   Sparkles,
   ArrowLeft,
   Calendar,
-  AlertCircle,
   HelpCircle,
   CheckCircle2,
   Lightbulb,
@@ -36,40 +33,21 @@ import {
 function StudyDocumentContent() {
   const params = useParams<{ id: string }>();
   const searchParams = useSearchParams();
-  const initialTab = searchParams.get('tab') as 'summary' | 'quiz' | 'flashcards' | 'chat' | 'text' || 'summary';
+  const tabParam = (searchParams.get('tab') as 'summary' | 'quiz' | 'flashcards' | 'chat' | 'text') || 'summary';
+  const [userSelectedTab, setUserSelectedTab] = useState<'summary' | 'quiz' | 'flashcards' | 'chat' | 'text' | null>(null);
+  const activeTab = userSelectedTab ?? tabParam;
 
-  const [activeTab, setActiveTab] = useState<'summary' | 'quiz' | 'flashcards' | 'chat' | 'text'>(
-    initialTab
-  );
-  const [doc, setDoc] = useState<StudyDocument | null>(() => {
+  const [doc] = useState<StudyDocument | null>(() => {
     return params?.id ? getDocumentById(params.id) || null : null;
   });
   const [quizzes, setQuizzes] = useState<QuizQuestion[]>(() => {
     return params?.id ? getQuizQuestions(params.id) : [];
   });
-  const [flashcards, setFlashcards] = useState<Flashcard[]>(() => {
+  const [flashcards] = useState<Flashcard[]>(() => {
     return params?.id ? getFlashcards(params.id) : [];
   });
   const [copiedText, setCopiedText] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-
-  useEffect(() => {
-    if (params?.id) {
-      const found = getDocumentById(params.id);
-      if (found) {
-        setDoc(found);
-        setQuizzes(getQuizQuestions(found.id));
-        setFlashcards(getFlashcards(found.id));
-      }
-    }
-  }, [params?.id]);
-
-  useEffect(() => {
-    const tabParam = searchParams.get('tab') as 'summary' | 'quiz' | 'flashcards' | 'chat' | 'text';
-    if (tabParam) {
-      setActiveTab(tabParam);
-    }
-  }, [searchParams]);
 
   if (!doc) {
     return (
@@ -108,7 +86,7 @@ function StudyDocumentContent() {
       if (data.questions) {
         saveQuizQuestions(doc.id, data.questions);
         setQuizzes(data.questions);
-        setActiveTab('quiz');
+        setUserSelectedTab('quiz');
       }
     } catch (e) {
       console.warn('Quiz generation error', e);
@@ -195,7 +173,7 @@ function StudyDocumentContent() {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                onClick={() => setUserSelectedTab(tab.id as typeof activeTab)}
                 className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition whitespace-nowrap ${
                   isActive
                     ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25'

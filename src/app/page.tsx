@@ -9,14 +9,11 @@ import {
   BarChart3,
   CheckCircle2,
   ArrowRight,
-  ShieldCheck,
   Terminal,
   MessageSquare,
   Check,
   ChevronRight,
   AlertTriangle,
-  Flame,
-  Layers,
 } from 'lucide-react';
 import ArchitectureModal from '@/components/architecture-modal';
 

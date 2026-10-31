@@ -11,11 +11,34 @@ import {
   Copy,
   Check,
   BookOpen,
-  HelpCircle,
   Lightbulb,
   Volume2,
   Trash2,
 } from 'lucide-react';
+
+let messageCounter = 0;
+function createUniqueMsgId(prefix: string): string {
+  messageCounter += 1;
+  return `${prefix}-${Date.now()}-${messageCounter}`;
+}
+
+function formatCurrentTime(): string {
+  return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function getInitialChatMessages(doc: StudyDocument): ChatMessage[] {
+  const msgs = getChatMessages(doc.id);
+  if (msgs.length > 0) return msgs;
+  const welcomeMsg: ChatMessage = {
+    id: `welcome-${doc.id}`,
+    sender: 'assistant',
+    text: `Hello! I am your AI Doubt Solver for **${doc.title}**. Ask me any question, request real-world examples, or test your understanding!`,
+    timestamp: formatCurrentTime(),
+    citations: [`Document: ${doc.title}`],
+  };
+  addChatMessage(doc.id, welcomeMsg);
+  return [welcomeMsg];
+}
 
 interface AIChatBoxProps {
   document: StudyDocument;
@@ -29,7 +52,7 @@ export default function AIChatBox({
   onSelectDoc,
 }: AIChatBoxProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(() =>
-    getChatMessages(currentDoc.id)
+    getInitialChatMessages(currentDoc)
   );
   const [inputQuestion, setInputQuestion] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,23 +60,11 @@ export default function AIChatBox({
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Sync when document changes
-  useEffect(() => {
-    const msgs = getChatMessages(currentDoc.id);
-    if (msgs.length === 0) {
-      // Default welcome message for this doc
-      const welcomeMsg: ChatMessage = {
-        id: `welcome-${currentDoc.id}`,
-        sender: 'assistant',
-        text: `Hello! I am your AI Doubt Solver for **${currentDoc.title}**. Ask me any question, request real-world examples, or test your understanding!`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        citations: [`Document: ${currentDoc.title}`],
-      };
-      setMessages([welcomeMsg]);
-      addChatMessage(currentDoc.id, welcomeMsg);
-    } else {
-      setMessages(msgs);
-    }
-  }, [currentDoc.id, currentDoc.title]);
+  const [prevDocId, setPrevDocId] = useState(currentDoc.id);
+  if (prevDocId !== currentDoc.id) {
+    setPrevDocId(currentDoc.id);
+    setMessages(getInitialChatMessages(currentDoc));
+  }
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -64,10 +75,10 @@ export default function AIChatBox({
     if (!q || loading) return;
 
     const userMsg: ChatMessage = {
-      id: `msg-user-${Date.now()}`,
+      id: createUniqueMsgId('msg-user'),
       sender: 'user',
       text: q,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp: formatCurrentTime(),
     };
 
     const newHistory = [...messages, userMsg];
@@ -89,21 +100,22 @@ export default function AIChatBox({
 
       const data = await res.json();
       const assistantMsg: ChatMessage = {
-        id: `msg-ai-${Date.now()}`,
+        id: createUniqueMsgId('msg-ai'),
         sender: 'assistant',
         text: data.answer || "I've analyzed your notes and formulated an explanation.",
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        timestamp: formatCurrentTime(),
         citations: data.citations || [`Source: ${currentDoc.title}`],
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
       addChatMessage(currentDoc.id, assistantMsg);
     } catch (err) {
+      console.warn('Chat request failed:', err);
       const errorMsg: ChatMessage = {
-        id: `msg-err-${Date.now()}`,
+        id: createUniqueMsgId('msg-err'),
         sender: 'assistant',
         text: 'Sorry, I encountered a temporary issue processing your question. Please try again.',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        timestamp: formatCurrentTime(),
       };
       setMessages((prev) => [...prev, errorMsg]);
     } finally {
@@ -128,10 +140,10 @@ export default function AIChatBox({
 
   function handleClear() {
     const welcomeMsg: ChatMessage = {
-      id: `welcome-${Date.now()}`,
+      id: createUniqueMsgId(`welcome-${currentDoc.id}`),
       sender: 'assistant',
       text: `Chat cleared. Ready for your questions on **${currentDoc.title}**!`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp: formatCurrentTime(),
       citations: [`Document: ${currentDoc.title}`],
     };
     setMessages([welcomeMsg]);
@@ -164,23 +176,33 @@ export default function AIChatBox({
           </div>
         </div>
 
-        {/* Document Selector if multiple documents */}
-        {allDocuments.length > 1 && onSelectDoc && (
-          <select
-            value={currentDoc.id}
-            onChange={(e) => {
-              const selected = allDocuments.find((d) => d.id === e.target.value);
-              if (selected) onSelectDoc(selected);
-            }}
-            className="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+        <div className="flex items-center gap-2">
+          {allDocuments.length > 1 && onSelectDoc && (
+            <select
+              value={currentDoc.id}
+              onChange={(e) => {
+                const selected = allDocuments.find((d) => d.id === e.target.value);
+                if (selected) onSelectDoc(selected);
+              }}
+              className="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+            >
+              {allDocuments.map((doc) => (
+                <option key={doc.id} value={doc.id}>
+                  {doc.title}
+                </option>
+              ))}
+            </select>
+          )}
+
+          <button
+            type="button"
+            onClick={handleClear}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            title="Clear Chat History"
           >
-            {allDocuments.map((doc) => (
-              <option key={doc.id} value={doc.id}>
-                {doc.title}
-              </option>
-            ))}
-          </select>
-        )}
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       {/* Messages list */}
