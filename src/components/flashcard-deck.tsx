@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Flashcard } from '@/types';
 import { updateFlashcardStatus } from '@/lib/store';
 import {
@@ -30,6 +30,25 @@ export default function FlashcardDeck({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
 
+  const handleNext = useCallback(() => {
+    setIsFlipped(false);
+    setCurrentIndex((prev) => (cards.length > 0 ? (prev + 1) % cards.length : 0));
+  }, [cards.length]);
+
+  const handlePrev = useCallback(() => {
+    setIsFlipped(false);
+    setCurrentIndex((prev) => (cards.length > 0 ? (prev - 1 + cards.length) % cards.length : 0));
+  }, [cards.length]);
+
+  const handleMarkStatus = useCallback((status: 'learning' | 'mastered') => {
+    const currentCard = cards[currentIndex];
+    if (!currentCard) return;
+    updateFlashcardStatus(documentId, currentCard.id, status);
+    setCards((prev) => prev.map((c, i) => (i === currentIndex ? { ...c, status } : c)));
+    setIsFlipped(false);
+    setCurrentIndex((prev) => (cards.length > 0 ? (prev + 1) % cards.length : 0));
+  }, [cards, currentIndex, documentId]);
+
   // Keyboard navigation support
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -51,7 +70,7 @@ export default function FlashcardDeck({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentIndex, cards]);
+  }, [handleNext, handlePrev, handleMarkStatus]);
 
   if (!cards || cards.length === 0) {
     return (
@@ -73,29 +92,11 @@ export default function FlashcardDeck({
     setIsFlipped((prev) => !prev);
   }
 
-  function handleNext() {
-    setIsFlipped(false);
-    setCurrentIndex((prev) => (prev + 1) % cards.length);
-  }
-
-  function handlePrev() {
-    setIsFlipped(false);
-    setCurrentIndex((prev) => (prev - 1 + cards.length) % cards.length);
-  }
-
   function handleShuffle() {
     setIsFlipped(false);
     const shuffled = [...cards].sort(() => Math.random() - 0.5);
     setCards(shuffled);
     setCurrentIndex(0);
-  }
-
-  function handleMarkStatus(status: 'learning' | 'mastered') {
-    if (!currentCard) return;
-    updateFlashcardStatus(documentId, currentCard.id, status);
-    const updated = cards.map((c, i) => (i === currentIndex ? { ...c, status } : c));
-    setCards(updated);
-    handleNext();
   }
 
   function handleReadAloud(e: React.MouseEvent, text: string) {
@@ -125,8 +126,8 @@ export default function FlashcardDeck({
             <Clock className="h-3.5 w-3.5" />
             <span>{learningCount} Learning</span>
           </span>
-          <span className="text-[11px] text-slate-400 font-semibold">
-            {progressPct}% Deck Mastery
+          <span className="text-[11px] text-slate-400 font-semibold truncate max-w-[220px]">
+            {documentTitle ? `${documentTitle} • ` : ''}{progressPct}% Deck Mastery
           </span>
         </div>
 

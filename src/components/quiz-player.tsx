@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { QuizQuestion, QuizAttempt } from '@/types';
 import { recordQuizAttempt } from '@/lib/store';
@@ -56,46 +56,8 @@ export default function QuizPlayer({
     }
   }, [isCompleted]);
 
-  // Keyboard shortcut support (1-4 to choose, Enter to confirm/advance)
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (isCompleted) return;
-      if (['1', '2', '3', '4'].includes(e.key) && !isAnswerSubmitted) {
-        setSelectedOption(parseInt(e.key, 10) - 1);
-      } else if (e.key === 'Enter') {
-        if (!isAnswerSubmitted && selectedOption !== null) {
-          handleSubmitAnswer();
-        } else if (isAnswerSubmitted) {
-          handleNext();
-        }
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentIndex, selectedOption, isAnswerSubmitted, isCompleted]);
-
-  if (!questions || questions.length === 0) {
-    return (
-      <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900 shadow-sm">
-        <HelpCircle className="mx-auto h-12 w-12 text-indigo-400 mb-3" />
-        <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
-          No Quiz Questions Available
-        </h3>
-        <p className="mt-1 text-xs text-slate-500">
-          Click generate practice quiz to build AI questions from this document.
-        </p>
-      </div>
-    );
-  }
-
-  function handleSelectOption(index: number) {
-    if (isAnswerSubmitted) return;
-    setSelectedOption(index);
-  }
-
-  function handleSubmitAnswer() {
-    if (selectedOption === null || isAnswerSubmitted) return;
+  const handleSubmitAnswer = useCallback(() => {
+    if (selectedOption === null || isAnswerSubmitted || !currentQ) return;
     const isCorrect = selectedOption === currentQ.correctAnswer;
     setIsAnswerSubmitted(true);
 
@@ -108,9 +70,9 @@ export default function QuizPlayer({
       },
     ];
     setAnswersState(updated);
-  }
+  }, [selectedOption, isAnswerSubmitted, currentQ, answersState]);
 
-  function handleNext() {
+  const handleNext = useCallback(() => {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex((prev) => prev + 1);
       setSelectedOption(null);
@@ -145,6 +107,44 @@ export default function QuizPlayer({
       recordQuizAttempt(attempt);
       setIsCompleted(true);
     }
+  }, [currentIndex, questions.length, answersState, documentId, documentTitle]);
+
+  // Keyboard shortcut support (1-4 to choose, Enter to confirm/advance)
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (isCompleted) return;
+      if (['1', '2', '3', '4'].includes(e.key) && !isAnswerSubmitted) {
+        setSelectedOption(parseInt(e.key, 10) - 1);
+      } else if (e.key === 'Enter') {
+        if (!isAnswerSubmitted && selectedOption !== null) {
+          handleSubmitAnswer();
+        } else if (isAnswerSubmitted) {
+          handleNext();
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isCompleted, isAnswerSubmitted, selectedOption, handleSubmitAnswer, handleNext]);
+
+  if (!questions || questions.length === 0) {
+    return (
+      <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900 shadow-sm">
+        <HelpCircle className="mx-auto h-12 w-12 text-indigo-400 mb-3" />
+        <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
+          No Quiz Questions Available
+        </h3>
+        <p className="mt-1 text-xs text-slate-500">
+          Click generate practice quiz to build AI questions from this document.
+        </p>
+      </div>
+    );
+  }
+
+  function handleSelectOption(index: number) {
+    if (isAnswerSubmitted) return;
+    setSelectedOption(index);
   }
 
   function restartQuiz() {
