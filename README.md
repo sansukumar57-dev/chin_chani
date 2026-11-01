@@ -1,11 +1,14 @@
 # StudyGenie – AI-Powered Personalized Learning Assistant
 
+**🌐 Live Demo:** https://studygenie-ai-one.vercel.app/library
+
 > **Devengers Shinchan Online Hackathon 2026**  
 > **Theme:** Open Innovation (AI / EdTech / Social Impact)  
 > **Stack:** Next.js 16 (App Router) • Supabase (Auth, PostgreSQL, Storage) • TypeScript • Tailwind CSS v4 • OpenAI GPT-4o-mini
 
 ---
 
+[Continue with the remaining sections exactly as provided.]
 ## 🎯 1. Problem Statement
 Students are constantly overwhelmed by dense textbooks, unstructured lecture notes, and lengthy syllabus handouts. Existing AI tools often provide generic, detached answers prone to hallucinations, while conventional e-learning portals offer static, one-size-fits-all quizzes that fail to diagnose where a student is actually struggling.
 
