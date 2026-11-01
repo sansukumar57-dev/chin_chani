@@ -1,6 +1,6 @@
 # StudyGenie – AI-Powered Personalized Learning Assistant
 
-**🌐 Live Demo:** https://studygenie-ai-one.vercel.app/library
+**🌐 Live Demo:** https://studygenie-ai-one.vercel.app/
 
 > **Devengers Shinchan Online Hackathon 2026**  
 > **Theme:** Open Innovation (AI / EdTech / Social Impact)  
